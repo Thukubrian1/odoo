@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropManager - Real Estate ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); }
+        .gradient-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        .gradient-teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .sidebar-item { transition: all 0.2s; }
+        .sidebar-item:hover { transform: translateX(4px); }
+        .property-card { transition: all 0.3s; }
+        .property-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .status-available { background: #dcfce7; color: #166534; }
+        .status-rented { background: #dbeafe; color: #1e40af; }
+        .status-sold { background: #f3e8ff; color: #6b21a8; }
+        .status-maintenance { background: #fed7aa; color: #9a3412; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-in { animation: slideIn 0.4s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 gradient-indigo rounded-lg flex items-center justify-center">
+                        <i class="fas fa-building text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900">PropManager</h1>
+                        <p class="text-xs text-gray-600">Real Estate ERP</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <button onclick="showModule('dashboard')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="dashboard">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </button>
+                <button onclick="showModule('properties')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="properties">
+                    <i class="fas fa-home w-5"></i>
+                    <span class="font-medium">Properties</span>
+                </button>
+                <button onclick="showModule('sales')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="sales">
+                    <i class="fas fa-handshake w-5"></i>
+                    <span class="font-medium">Sales & Leasing</span>
+                </button>
+                <button onclick="showModule('tenants')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="tenants">
+                    <i class="fas fa-users w-5"></i>
+                    <span class="font-medium">Tenants</span>
+                </button>
+                <button onclick="showModule('rentals')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="rentals">
+                    <i class="fas fa-file-invoice-dollar w-5"></i>
+                    <span class="font-medium">Rental Management</span>
+                </button>
+                <button onclick="showModule('maintenance')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="maintenance">
+                    <i class="fas fa-tools w-5"></i>
+                    <span class="font-medium">Maintenance</span>
+                </button>
+                <button onclick="showModule('financial')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="financial">
+                    <i class="fas fa-dollar-sign w-5"></i>
+                    <span class="font-medium">Financial</span>
+                </button>
+                <button onclick="showModule('reports')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="reports">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span class="font-medium">Reports</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center gap-3 px-4 py-3">
+                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-semibold text-gray-700">AM</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">Alex Morgan</div>
+                        <div class="text-xs text-gray-500">Property Manager</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-8">
+                <!-- Dashboard Module -->
+                <div id="dashboard-module" class="module-content">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Property Portfolio Overview</h2>
+                        <button onclick="openModal('newProperty')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            Add Property
+                        </button>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="gradient-blue rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-building text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">Total</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">284</div>
+                            <div class="text-sm opacity-90">Total Properties</div>
+                        </div>
+
+                        <div class="gradient-green rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-percentage text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">+5%</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">87%</div>
+                            <div class="text-sm opacity-90">Occupancy Rate</div>
+                        </div>
+
+                        <div class="gradient-orange rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">MTD</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">$425K</div>
+                            <div class="text-sm opacity-90">Monthly Revenue</div>
+                        </div>
+
+                        <div class="gradient-purple rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-calendar-check text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">Expiring</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">23</div>
+                            <div class="text-sm opacity-90">Leases This Month</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <!-- Property Status Overview -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Property Status</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span class="text-gray-700">Available</span>
+                                    </div>
+                                    <span class="font-bold text-gray-900">42</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                        <span class="text-gray-700">Rented</span>
+                                    </div>
+                                    <span class="font-bold text-gray-900">198</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                                        <span class="text-gray-700">Sold</span>
+                                    </div>
+                                    <span class="font-bold text-gray-900">31</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                                        <span class="text-gray-700">Maintenance</span>
+                                    </div>
+                                    <span class="font-bold text-gray-900">13</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Breakdown -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Revenue Breakdown</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="text-gray-600">Residential</span>
+                                        <span class="font-semibold text-gray-900">$285K (67%)</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-blue h-2 rounded-full" style="width: 67%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="text-gray-600">Commercial</span>
+                                        <span class="font-semibold text-gray-900">$115K (27%)</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-green h-2 rounded-full" style="width: 27%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="text-gray-600">Mixed-Use</span>
+                                        <span class="font-semibold text-gray-900">$25K (6%)</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-purple h-2 rounded-full" style="width: 6%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+                            <div class="space-y-3" id="activity-feed"></div>
+                        </div>
+                    </div>
+
+                    <!-- Featured Properties -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Featured Properties</h3>
+                                <button class="text-indigo-600 text-sm font-medium hover:text-indigo-700">View All →</button>
+                            </div>
+                        </div>
+                        <div class="p-5" id="featured-properties"></div>
+                    </div>
+                </div>
+
+                <!-- Properties Module -->
+                <div id="properties-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Property Portfolio</h2>
+                        <div class="flex gap-2">
+                            <button onclick="openModal('newProperty')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                <i class="fas fa-plus"></i>
+                                Add Property
+                            </button>
+                            <button class="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Residential</div>
+                            <div class="text-3xl font-bold text-blue-600">168</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Commercial</div>
+                            <div class="text-3xl font-bold text-green-600">94</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Mixed-Use</div>
+                            <div class="text-3xl font-bold text-purple-600">22</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Total Value</div>
+                            <div class="text-3xl font-bold text-orange-600">$42M</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">All Properties</h3>
+                                <div class="relative">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                                    <input type="text" placeholder="Search properties..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="properties-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Sales & Leasing Module -->
+                <div id="sales-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Sales & Leasing Pipeline</h2>
+                        <div class="flex gap-2">
+                            <button onclick="openModal('newLead')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                <i class="fas fa-plus"></i>
+                                New Lead
+                            </button>
+                            <button onclick="openModal('newOffer')" class="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-handshake"></i>
+                                New Offer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Active Leads</div>
+                                <i class="fas fa-user-plus text-blue-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">47</div>
+                            <div class="text-sm text-blue-600 mt-1">+8 this week</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Offers Made</div>
+                                <i class="fas fa-file-contract text-green-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">23</div>
+                            <div class="text-sm text-gray-600 mt-1">12 pending</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Deals Closed</div>
+                                <i class="fas fa-check-circle text-purple-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">15</div>
+                            <div class="text-sm text-green-600 mt-1">This month</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Commission</div>
+                                <i class="fas fa-dollar-sign text-orange-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">$68K</div>
+                            <div class="text-sm text-gray-600 mt-1">Earned MTD</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Active Rental Contracts</h3>
+                            </div>
+                            <div class="p-5" id="rental-contracts"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Upcoming Renewals</h3>
+                            </div>
+                            <div class="p-5" id="upcoming-renewals"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maintenance Module -->
+                <div id="maintenance-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Maintenance Management</h2>
+                        <button onclick="openModal('newWorkOrder')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            New Work Order
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-orange-100 rounded-lg">
+                                    <i class="fas fa-tools text-orange-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Open Tickets</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">28</div>
+                            <div class="text-sm text-gray-600 mt-1">Requires attention</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <i class="fas fa-clock text-blue-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">In Progress</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">15</div>
+                            <div class="text-sm text-gray-600 mt-1">Being worked on</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <i class="fas fa-check-circle text-green-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Completed</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">142</div>
+                            <div class="text-sm text-gray-600 mt-1">This month</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <i class="fas fa-dollar-sign text-purple-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Monthly Cost</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">$42,300</div>
+                            <div class="text-sm text-gray-600 mt-1">Budget: $50K</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Work Orders</h3>
+                            </div>
+                            <div class="p-5" id="work-orders"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Vendor Performance</h3>
+                            </div>
+                            <div class="p-5" id="vendor-performance"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Preventive Maintenance Schedule</h3>
+                        </div>
+                        <div class="p-5 overflow-x-auto" id="maintenance-schedule"></div>
+                    </div>
+                </div>
+
+                <!-- Financial Module -->
+                <div id="financial-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Financial Management</h2>
+                        <div class="flex gap-2">
+                            <button onclick="openModal('newInvoice')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                <i class="fas fa-plus"></i>
+                                New Invoice
+                            </button>
+                            <button onclick="openModal('newExpense')" class="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-receipt"></i>
+                                Add Expense
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Total Revenue</div>
+                                <i class="fas fa-arrow-up text-green-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">$1.2M</div>
+                            <div class="text-sm text-green-600">+15% YoY</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Total Expenses</div>
+                                <i class="fas fa-arrow-down text-red-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">$680K</div>
+                            <div class="text-sm text-gray-600">57% of revenue</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Net Profit</div>
+                                <i class="fas fa-chart-line text-blue-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">$520K</div>
+                            <div class="text-sm text-blue-600">43% margin</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Income vs Expenses</h3>
+                            </div>
+                            <div class="p-5" id="income-expenses-chart"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Property Performance</h3>
+                            </div>
+                            <div class="p-5 overflow-x-auto" id="property-performance"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Module -->
+                <div id="reports-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Reports & Analytics</h2>
+                        <button class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-download"></i>
+                            Export Report
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 cursor-pointer hover:border-indigo-500 transition-colors">
+                            <div class="p-3 bg-blue-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-chart-pie text-blue-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-900 mb-1">Occupancy Report</h4>
+                            <p class="text-sm text-gray-600">Property occupancy analysis</p>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 cursor-pointer hover:border-indigo-500 transition-colors">
+                            <div class="p-3 bg-green-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-900 mb-1">Revenue Report</h4>
+                            <p class="text-sm text-gray-600">Income breakdown by property</p>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 cursor-pointer hover:border-indigo-500 transition-colors">
+                            <div class="p-3 bg-orange-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-tools text-orange-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-900 mb-1">Maintenance Report</h4>
+                            <p class="text-sm text-gray-600">Cost and frequency analysis</p>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 cursor-pointer hover:border-indigo-500 transition-colors">
+                            <div class="p-3 bg-purple-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-900 mb-1">ROI Analysis</h4>
+                            <p class="text-sm text-gray-600">Return on investment metrics</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Key Performance Indicators</h3>
+                        </div>
+                        <div class="p-5" id="kpi-report"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Commission Summary</h3>
+                            </div>
+                            <div class="p-5 overflow-x-auto" id="commission-report"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Vacancy Tracking</h3>
+                            </div>
+                            <div class="p-5" id="vacancy-report"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
+                <h3 class="text-xl font-bold text-gray-900" id="modal-title">Modal Title</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6" id="modal-body"></div>
+
+            <div class="p-6 border-t border-gray-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
+                <button onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitForm()" class="px-4 py-2 gradient-indigo text-white rounded-lg hover:opacity-90 transition-colors">
+                    Create
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const properties = [
+            { id: 'PROP001', name: 'Sunset Towers', type: 'Residential', location: 'Downtown', units: 24, occupied: 22, status: 'rented', rent: 2500, value: 3200000 },
+            { id: 'PROP002', name: 'Harbor View Apartments', type: 'Residential', location: 'Waterfront', units: 36, occupied: 31, status: 'rented', rent: 2800, value: 4500000 },
+            { id: 'PROP003', name: 'Tech Plaza Office Complex', type: 'Commercial', location: 'Business District', units: 12, occupied: 11, status: 'rented', rent: 5500, value: 6800000 },
+            { id: 'PROP004', name: 'Green Valley Villas', type: 'Residential', location: 'Suburbs', units: 18, occupied: 0, status: 'available', rent: 3200, value: 2900000 },
+            { id: 'PROP005', name: 'Metro Mall Retail', type: 'Commercial', location: 'City Center', units: 45, occupied: 42, status: 'rented', rent: 1800, value: 8500000 },
+            { id: 'PROP006', name: 'Riverside Condos', type: 'Residential', location: 'Riverside', units: 28, occupied: 0, status: 'maintenance', rent: 2200, value: 3600000 }
+        ];
+
+        const tenants = [
+            { id: 'TEN001', name: 'John Smith', property: 'PROP001', unit: 'A-205', lease: '2023-06-01', expiry: '2025-06-01', rent: 2500, status: 'good', phone: '+1-555-0101' },
+            { id: 'TEN002', name: 'Sarah Johnson', property: 'PROP002', unit: 'B-104', lease: '2024-01-15', expiry: '2025-01-15', rent: 2800, status: 'good', phone: '+1-555-0102' },
+            { id: 'TEN003', name: 'Tech Innovations Inc', property: 'PROP003', unit: 'Floor 5', lease: '2023-03-01', expiry: '2026-03-01', rent: 5500, status: 'good', phone: '+1-555-0201' },
+            { id: 'TEN004', name: 'Mike Rodriguez', property: 'PROP001', unit: 'C-301', lease: '2024-08-01', expiry: '2025-08-01', rent: 2500, status: 'late', phone: '+1-555-0103' },
+            { id: 'TEN005', name: 'Fashion Boutique LLC', property: 'PROP005', unit: 'Store 12', lease: '2023-11-01', expiry: '2025-11-01', rent: 1800, status: 'good', phone: '+1-555-0202' }
+        ];
+
+        const leads = [
+            { id: 'LEAD001', name: 'Emily Watson', property: 'PROP004', status: 'qualified', source: 'Website', interest: 'Buy', budget: 350000, agent: 'Alice Cooper' },
+            { id: 'LEAD002', name: 'Robert Chen', property: 'PROP001', status: 'contacted', source: 'Referral', interest: 'Rent', budget: 2500, agent: 'Bob Martinez' },
+            { id: 'LEAD003', name: 'Global Corp', property: 'PROP003', status: 'negotiating', source: 'Direct', interest: 'Lease', budget: 6000, agent: 'Carol Davis' }
+        ];
+
+        const workOrders = [
+            { id: 'WO001', property: 'PROP001', unit: 'A-205', issue: 'Leaking faucet', priority: 'medium', status: 'in-progress', vendor: 'Quick Fix Plumbing', cost: 150 },
+            { id: 'WO002', property: 'PROP002', unit: 'Common Area', issue: 'HVAC maintenance', priority: 'high', status: 'open', vendor: 'Climate Control Pro', cost: 800 },
+            { id: 'WO003', property: 'PROP005', unit: 'Store 8', issue: 'Electrical outlet repair', priority: 'high', status: 'in-progress', vendor: 'Power Solutions', cost: 200 }
+        ];
+
+        const activities = [
+            { type: 'success', message: 'New tenant moved in - PROP002 Unit B-104', time: '2 hours ago' },
+            { type: 'warning', message: 'Lease renewal required - TEN004', time: '4 hours ago' },
+            { type: 'info', message: 'Maintenance completed - WO015', time: '6 hours ago' },
+            { type: 'success', message: 'Payment received - $2,800 from TEN002', time: '1 day ago' }
+        ];
+
+        // Functions
+        function showModule(moduleName) {
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(moduleName + '-module').classList.remove('hidden'));
+            
+            document.querySelectorAll('.module-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-50', 'text-indigo-600');
+                btn.classList.add('text-gray-700');
+            });
+            
+            const activeBtn = document.querySelector(`[data-module="${moduleName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-50', 'text-indigo-600');
+                activeBtn.classList.remove('text-gray-700');
+            }
+        }
+
+        function renderFeaturedProperties() {
+            const container = document.getElementById('featured-properties');
+            const featured = properties.slice(0, 3);
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    ${featured.map(prop => {
+                        const occupancyRate = prop.units > 0 ? Math.round((prop.occupied / prop.units) * 100) : 0;
+                        const statusClass = prop.status === 'available' ? 'status-available' : 
+                                          prop.status === 'rented' ? 'status-rented' :
+                                          prop.status === 'sold' ? 'status-sold' : 'status-maintenance';
+                        
+                        return `
+                            <div class="property-card border border-gray-200 rounded-lg p-4 cursor-pointer">
+                                <div class="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg mb-3 flex items-center justify-center">
+                                    <i class="fas fa-building text-4xl text-indigo-400"></i>
+                                </div>
+                                <span class="status-badge ${statusClass}">
+                                    <div class="w-2 h-2 rounded-full ${prop.status === 'available' ? 'bg-green-500' : prop.status === 'rented' ? 'bg-blue-500' : prop.status === 'sold' ? 'bg-purple-500' : 'bg-orange-500'}"></div>
+                                    ${prop.status.charAt(0).toUpperCase() + prop.status.slice(1)}
+                                </span>
+                                <h4 class="font-semibold text-gray-900 mt-3 mb-1">${prop.name}</h4>
+                                <p class="text-sm text-gray-600 mb-3">${prop.location} • ${prop.type}</p>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-600">${prop.occupied}/${prop.units} units</span>
+                                    <span class="font-semibold text-indigo-600">${occupancyRate}%</span>
+                                </div>
+                                <div class="mt-2 text-sm font-semibold text-gray-900">${prop.rent.toLocaleString()}/mo</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderActivityFeed() {
+            const container = document.getElementById('activity-feed');
+            container.innerHTML = activities.map(activity => {
+                const dotColor = activity.type === 'success' ? 'bg-green-500' : 
+                                activity.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+                
+                return `
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="${dotColor} w-2 h-2 rounded-full mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-gray-900">${activity.message}</div>
+                            <div class="text-xs text-gray-500 mt-1">${activity.time}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPropertiesGrid() {
+            const container = document.getElementById('properties-grid');
+            container.innerHTML = properties.map(prop => {
+                const occupancyRate = prop.units > 0 ? Math.round((prop.occupied / prop.units) * 100) : 0;
+                const statusClass = prop.status === 'available' ? 'status-available' : 
+                                  prop.status === 'rented' ? 'status-rented' :
+                                  prop.status === 'sold' ? 'status-sold' : 'status-maintenance';
+                
+                return `
+                    <div class="property-card border border-gray-200 rounded-lg p-4 cursor-pointer">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">${prop.name}</h4>
+                                <p class="text-sm text-gray-600">${prop.id}</p>
+                            </div>
+                            <span class="status-badge ${statusClass}">
+                                ${prop.status.charAt(0).toUpperCase() + prop.status.slice(1)}
+                            </span>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Type:</span>
+                                <span class="font-medium text-gray-900">${prop.type}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Location:</span>
+                                <span class="font-medium text-gray-900">${prop.location}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Occupancy:</span>
+                                <span class="font-medium text-gray-900">${prop.occupied}/${prop.units} (${occupancyRate}%)</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Rent:</span>
+                                <span class="font-semibold text-indigo-600">${prop.rent.toLocaleString()}/mo</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Value:</span>
+                                <span class="font-semibold text-gray-900">${(prop.value / 1000000).toFixed(1)}M</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTenantsTable() {
+            const container = document.getElementById('tenants-table');
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Tenant</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Property</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Unit</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Rent</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Lease Expiry</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tenants.map(tenant => {
+                            const statusColor = tenant.status === 'good' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                            
+                            return `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-4 px-2">
+                                        <div class="font-medium text-gray-900">${tenant.name}</div>
+                                        <div class="text-sm text-gray-500">${tenant.id}</div>
+                                    </td>
+                                    <td class="py-4 px-2 text-gray-700">${tenant.property}</td>
+                                    <td class="py-4 px-2 text-gray-700">${tenant.unit}</td>
+                                    <td class="py-4 px-2 font-semibold text-gray-900">${tenant.rent.toLocaleString()}</td>
+                                    <td class="py-4 px-2 text-gray-700">${tenant.expiry}</td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${tenant.status.toUpperCase()}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderSalesPipeline() {
+            const container = document.getElementById('sales-pipeline');
+            container.innerHTML = leads.map(lead => {
+                const statusColor = lead.status === 'qualified' ? 'bg-green-100 text-green-700' :
+                                   lead.status === 'contacted' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700';
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3 hover:border-indigo-500 transition-colors cursor-pointer">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">${lead.name}</h4>
+                                <p class="text-sm text-gray-600">${lead.id}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${lead.status.toUpperCase()}</span>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Property:</span>
+                                <span class="font-medium text-gray-900">${lead.property}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Interest:</span>
+                                <span class="font-medium text-gray-900">${lead.interest}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Budget:</span>
+                                <span class="font-semibold text-indigo-600">${lead.budget.toLocaleString()}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Agent:</span>
+                                <span class="font-medium text-gray-900">${lead.agent}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderWorkOrders() {
+            const container = document.getElementById('work-orders');
+            container.innerHTML = workOrders.map(wo => {
+                const priorityColor = wo.priority === 'high' ? 'bg-red-100 text-red-700' : 
+                                     wo.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700';
+                const statusColor = wo.status === 'open' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700';
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">${wo.issue}</h4>
+                                <p class="text-sm text-gray-600">${wo.id}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${priorityColor}">${wo.priority.toUpperCase()}</span>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Property:</span>
+                                <span class="font-medium text-gray-900">${wo.property} - ${wo.unit}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Vendor:</span>
+                                <span class="font-medium text-gray-900">${wo.vendor}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Cost:</span>
+                                <span class="font-semibold text-gray-900">${wo.cost}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${wo.status.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRentalContracts() {
+            const container = document.getElementById('rental-contracts');
+            const activeContracts = tenants.filter(t => t.status === 'good').slice(0, 3);
+            
+            container.innerHTML = activeContracts.map(contract => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900">${contract.name}</h4>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">ACTIVE</span>
+                    </div>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <p>${contract.property} - ${contract.unit}</p>
+                        <p>Rent: <span class="font-semibold text-gray-900">${contract.rent.toLocaleString()}/mo</span></p>
+                        <p>Expires: ${contract.expiry}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderUpcomingRenewals() {
+            const container = document.getElementById('upcoming-renewals');
+            const renewals = tenants.slice(0, 3);
+            
+            container.innerHTML = renewals.map(renewal => {
+                const daysUntilExpiry = Math.floor(Math.random() * 60) + 1;
+                const urgencyColor = daysUntilExpiry < 30 ? 'text-red-600' : daysUntilExpiry < 60 ? 'text-orange-600' : 'text-blue-600';
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="font-semibold text-gray-900">${renewal.name}</h4>
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">${daysUntilExpiry} DAYS</span>
+                        </div>
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <p>${renewal.property} - ${renewal.unit}</p>
+                            <p>Current Rent: <span class="font-semibold text-gray-900">${renewal.rent.toLocaleString()}/mo</span></p>
+                            <p class="${urgencyColor} font-medium">Expires: ${renewal.expiry}</p>
+                        </div>
+                        <button class="mt-3 w-full px-3 py-2 text-sm bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
+                            Initiate Renewal
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderIncomeExpenses() {
+            const container = document.getElementById('income-expenses-chart');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    ${months.map(month => {
+                        const income = Math.floor(Math.random() * 100000) + 350000;
+                        const expenses = Math.floor(income * (Math.random() * 0.3 + 0.4));
+                        const maxValue = 500000;
+                        const incomeWidth = (income / maxValue) * 100;
+                        const expensesWidth = (expenses / maxValue) * 100;
+                        
+                        return `
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="font-medium text-gray-700">${month}</span>
+                                    <span class="text-gray-600">${(income - expenses).toLocaleString()} profit</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-600 w-16">Income</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-3">
+                                            <div class="gradient-green h-3 rounded-full" style="width: ${incomeWidth}%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold text-gray-900 w-20 text-right">${(income / 1000).toFixed(0)}K</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-600 w-16">Expenses</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-3">
+                                            <div class="gradient-orange h-3 rounded-full" style="width: ${expensesWidth}%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold text-gray-900 w-20 text-right">${(expenses / 1000).toFixed(0)}K</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderPropertyPerformance() {
+            const container = document.getElementById('property-performance');
+            const topProperties = properties.slice(0, 5);
+            
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Property</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Revenue</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">ROI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${topProperties.map(prop => {
+                            const revenue = prop.rent * prop.occupied;
+                            const roi = (Math.random() * 10 + 5).toFixed(1);
+                            
+                            return `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-3 px-2">
+                                        <div class="font-medium text-gray-900">${prop.name}</div>
+                                        <div class="text-xs text-gray-500">${prop.location}</div>
+                                    </td>
+                                    <td class="py-3 px-2 font-semibold text-gray-900">${revenue.toLocaleString()}</td>
+                                    <td class="py-3 px-2">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">${roi}%</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderKPIReport() {
+            const container = document.getElementById('kpi-report');
+            const kpis = [
+                { label: 'Average Occupancy Rate', value: '87%', trend: '+5%', trendUp: true },
+                { label: 'Average Rent per Unit', value: '$2,650', trend: '+3.2%', trendUp: true },
+                { label: 'Collection Rate', value: '94%', trend: '+2%', trendUp: true },
+                { label: 'Maintenance Response Time', value: '24hrs', trend: '-15%', trendUp: true },
+                { label: 'Tenant Retention Rate', value: '89%', trend: '+7%', trendUp: true },
+                { label: 'Vacancy Rate', value: '13%', trend: '-3%', trendUp: true }
+            ];
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    ${kpis.map(kpi => `
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="text-sm text-gray-600 mb-2">${kpi.label}</div>
+                            <div class="flex items-end justify-between">
+                                <div class="text-2xl font-bold text-gray-900">${kpi.value}</div>
+                                <div class="flex items-center gap-1 ${kpi.trendUp ? 'text-green-600' : 'text-red-600'}">
+                                    <i class="fas fa-arrow-${kpi.trendUp ? 'up' : 'down'} text-xs"></i>
+                                    <span class="text-sm font-medium">${kpi.trend}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderCommissionReport() {
+            const container = document.getElementById('commission-report');
+            const agents = [
+                { name: 'Alice Cooper', deals: 12, commission: 45000 },
+                { name: 'Bob Martinez', deals: 8, commission: 28000 },
+                { name: 'Carol Davis', deals: 15, commission: 52000 },
+                { name: 'David Wilson', deals: 6, commission: 21000 }
+            ];
+            
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Agent</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Deals</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${agents.map(agent => `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-2 font-medium text-gray-900">${agent.name}</td>
+                                <td class="py-3 px-2 text-gray-700">${agent.deals}</td>
+                                <td class="py-3 px-2 font-semibold text-green-600">${agent.commission.toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderVacancyReport() {
+            const container = document.getElementById('vacancy-report');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    ${properties.filter(p => p.status === 'available' || p.occupied < p.units).map(prop => {
+                        const vacantUnits = prop.units - prop.occupied;
+                        const vacancyRate = Math.round((vacantUnits / prop.units) * 100);
+                        
+                        return `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">${prop.name}</h4>
+                                        <p class="text-sm text-gray-600">${prop.location}</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">${vacancyRate}% VACANT</span>
+                                </div>
+                                <div class="mt-3 text-sm">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-gray-600">Vacant Units</span>
+                                        <span class="font-semibold text-gray-900">${vacantUnits} of ${prop.units}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-orange h-2 rounded-full" style="width: ${vacancyRate}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderVendorPerformance() {
+            const container = document.getElementById('vendor-performance');
+            const vendors = [
+                { name: 'Quick Fix Plumbing', rating: 4.8, jobs: 45, avgTime: '2.5 hrs' },
+                { name: 'Climate Control Pro', rating: 4.5, jobs: 28, avgTime: '4 hrs' },
+                { name: 'Power Solutions', rating: 4.9, jobs: 32, avgTime: '3 hrs' }
+            ];
+            
+            container.innerHTML = vendors.map(vendor => {
+                const stars = '★'.repeat(Math.floor(vendor.rating)) + '☆'.repeat(5 - Math.floor(vendor.rating));
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="font-semibold text-gray-900">${vendor.name}</h4>
+                            <span class="text-yellow-400">${stars}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <span class="text-gray-600">Jobs Completed:</span>
+                                <p class="font-semibold text-gray-900">${vendor.jobs}</p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Avg Response:</span>
+                                <p class="font-semibold text-gray-900">${vendor.avgTime}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMaintenanceSchedule() {
+            const container = document.getElementById('maintenance-schedule');
+            const schedule = [
+                { property: 'PROP001', task: 'HVAC Filter Replacement', due: '2024-11-01', frequency: 'Monthly', status: 'scheduled' },
+                { property: 'PROP002', task: 'Fire Safety Inspection', due: '2024-11-05', frequency: 'Quarterly', status: 'scheduled' },
+                { property: 'PROP003', task: 'Elevator Maintenance', due: '2024-11-10', frequency: 'Monthly', status: 'scheduled' }
+            ];
+            
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Property</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Task</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Due Date</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Frequency</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${schedule.map(item => `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-2 font-medium text-gray-900">${item.property}</td>
+                                <td class="py-3 px-2 text-gray-700">${item.task}</td>
+                                <td class="py-3 px-2 text-gray-700">${item.due}</td>
+                                <td class="py-3 px-2 text-gray-700">${item.frequency}</td>
+                                <td class="py-3 px-2">
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">${item.status.toUpperCase()}</span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderRecentOffers() {
+            const container = document.getElementById('recent-offers');
+            const offers = [
+                { id: 'OFF001', property: 'PROP004', client: 'Emily Watson', amount: 340000, status: 'pending' },
+                { id: 'OFF002', property: 'PROP001', client: 'Robert Chen', amount: 2500, status: 'accepted' },
+                { id: 'OFF003', property: 'PROP003', client: 'Global Corp', amount: 6000, status: 'negotiating' }
+            ];
+            
+            container.innerHTML = offers.map(offer => {
+                const statusColor = offer.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                                   offer.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700';
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">${offer.client}</h4>
+                                <p class="text-sm text-gray-600">${offer.id}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${offer.status.toUpperCase()}</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Property:</span>
+                                <span class="font-medium text-gray-900">${offer.property}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Offer Amount:</span>
+                                <span class="font-semibold text-indigo-600">${offer.amount.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openModal(type) {
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            const modalContent = {
+                newProperty: {
+                    title: 'Add New Property',
+                    fields: [
+                        { label: 'Property Name', type: 'text', placeholder: 'Enter property name' },
+                        { label: 'Property Type', type: 'select', options: ['Residential', 'Commercial', 'Mixed-Use'] },
+                        { label: 'Location', type: 'text', placeholder: 'Enter location' },
+                        { label: 'Number of Units', type: 'number', placeholder: 'Enter number of units' },
+                        { label: 'Property Value', type: 'number', placeholder: 'Enter property value' },
+                        { label: 'Rent per Unit', type: 'number', placeholder: 'Monthly rent' },
+                        { label: 'Status', type: 'select', options: ['Available', 'Rented', 'Sold', 'Under Maintenance'] }
+                    ]
+                },
+                newTenant: {
+                    title: 'Add New Tenant',
+                    fields: [
+                        { label: 'Tenant Name', type: 'text', placeholder: 'Enter tenant name' },
+                        { label: 'Email', type: 'email', placeholder: 'tenant@example.com' },
+                        { label: 'Phone', type: 'tel', placeholder: 'Phone number' },
+                        { label: 'Property', type: 'select', options: properties.map(p => p.name) },
+                        { label: 'Unit Number', type: 'text', placeholder: 'Unit number' },
+                        { label: 'Monthly Rent', type: 'number', placeholder: 'Enter rent amount' },
+                        { label: 'Lease Start Date', type: 'date' },
+                        { label: 'Lease End Date', type: 'date' },
+                        { label: 'Security Deposit', type: 'number', placeholder: 'Enter deposit amount' }
+                    ]
+                },
+                newLead: {
+                    title: 'Add New Lead',
+                    fields: [
+                        { label: 'Lead Name', type: 'text', placeholder: 'Enter lead name' },
+                        { label: 'Email', type: 'email', placeholder: 'lead@example.com' },
+                        { label: 'Phone', type: 'tel', placeholder: 'Phone number' },
+                        { label: 'Property Interest', type: 'select', options: properties.map(p => p.name) },
+                        { label: 'Interest Type', type: 'select', options: ['Buy', 'Rent', 'Lease'] },
+                        { label: 'Budget', type: 'number', placeholder: 'Enter budget' },
+                        { label: 'Source', type: 'select', options: ['Website', 'Referral', 'Direct', 'Advertisement'] },
+                        { label: 'Assign to Agent', type: 'text', placeholder: 'Agent name' }
+                    ]
+                },
+                newRental: {
+                    title: 'Create Rental Agreement',
+                    fields: [
+                        { label: 'Tenant', type: 'select', options: tenants.map(t => t.name) },
+                        { label: 'Property', type: 'select', options: properties.map(p => p.name) },
+                        { label: 'Unit', type: 'text', placeholder: 'Unit number' },
+                        { label: 'Monthly Rent', type: 'number', placeholder: 'Enter rent amount' },
+                        { label: 'Start Date', type: 'date' },
+                        { label: 'End Date', type: 'date' },
+                        { label: 'Security Deposit', type: 'number', placeholder: 'Deposit amount' },
+                        { label: 'Rent Escalation %', type: 'number', placeholder: 'Annual increase %' }
+                    ]
+                },
+                newWorkOrder: {
+                    title: 'Create Work Order',
+                    fields: [
+                        { label: 'Property', type: 'select', options: properties.map(p => p.name) },
+                        { label: 'Unit', type: 'text', placeholder: 'Unit number' },
+                        { label: 'Issue Description', type: 'textarea', placeholder: 'Describe the issue' },
+                        { label: 'Priority', type: 'select', options: ['Low', 'Medium', 'High', 'Critical'] },
+                        { label: 'Category', type: 'select', options: ['Plumbing', 'Electrical', 'HVAC', 'General', 'Emergency'] },
+                        { label: 'Assign to Vendor', type: 'text', placeholder: 'Vendor name' },
+                        { label: 'Estimated Cost', type: 'number', placeholder: 'Enter estimated cost' }
+                    ]
+                },
+                newInvoice: {
+                    title: 'Create Invoice',
+                    fields: [
+                        { label: 'Tenant', type: 'select', options: tenants.map(t => t.name) },
+                        { label: 'Invoice Type', type: 'select', options: ['Rent', 'Utilities', 'Maintenance', 'Other'] },
+                        { label: 'Amount', type: 'number', placeholder: 'Enter amount' },
+                        { label: 'Due Date', type: 'date' },
+                        { label: 'Description', type: 'textarea', placeholder: 'Invoice description' }
+                    ]
+                },
+                newExpense: {
+                    title: 'Add Expense',
+                    fields: [
+                        { label: 'Property', type: 'select', options: properties.map(p => p.name) },
+                        { label: 'Category', type: 'select', options: ['Maintenance', 'Utilities', 'Insurance', 'Taxes', 'Management', 'Other'] },
+                        { label: 'Amount', type: 'number', placeholder: 'Enter amount' },
+                        { label: 'Date', type: 'date' },
+                        { label: 'Vendor', type: 'text', placeholder: 'Vendor name' },
+                        { label: 'Description', type: 'textarea', placeholder: 'Expense description' }
+                    ]
+                },
+                newOffer: {
+                    title: 'Create New Offer',
+                    fields: [
+                        { label: 'Lead/Client', type: 'select', options: leads.map(l => l.name) },
+                        { label: 'Property', type: 'select', options: properties.map(p => p.name) },
+                        { label: 'Offer Amount', type: 'number', placeholder: 'Enter offer amount' },
+                        { label: 'Offer Type', type: 'select', options: ['Purchase', 'Lease', 'Rent'] },
+                        { label: 'Commission %', type: 'number', placeholder: 'Commission percentage' },
+                        { label: 'Valid Until', type: 'date' },
+                        { label: 'Special Terms', type: 'textarea', placeholder: 'Additional terms and conditions' }
+                    ]
+                }
+            };
+            
+            const currentModal = modalContent[type] || modalContent.newProperty;
+            title.textContent = currentModal.title;
+            
+            body.innerHTML = currentModal.fields.map(field => {
+                if (field.type === 'select') {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select ${field.label}</option>
+                                ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (field.type === 'textarea') {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <textarea rows="4" placeholder="${field.placeholder}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <input type="${field.type}" placeholder="${field.placeholder || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    `;
+                }
+            }).join('');
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function submitForm() {
+            const modalTitle = document.getElementById('modal-title').textContent;
+            showNotification(`${modalTitle} successfully!`, 'success');
+            closeModal();
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showModule('dashboard');
+            renderFeaturedProperties();
+            renderActivityFeed();
+            renderPropertiesGrid();
+            renderTenantsTable();
+            renderSalesPipeline();
+            renderRecentOffers();
+            renderWorkOrders();
+            renderVendorPerformance();
+            renderMaintenanceSchedule();
+            renderRentalContracts();
+            renderUpcomingRenewals();
+            renderIncomeExpenses();
+            renderPropertyPerformance();
+            renderKPIReport();
+            renderCommissionReport();
+            renderVacancyReport();
+            
+            const dashboardBtn = document.querySelector('[data-module="dashboard"]');
+            if (dashboardBtn) {
+                dashboardBtn.classList.add('bg-indigo-50', 'text-indigo-600');
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('modal').classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            const dateString = now.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            
+            if (!document.getElementById('system-clock')) {
+                const headers = document.querySelectorAll('.flex.items-center.justify-between.mb-6');
+                if (headers[0]) {
+                    const clockDiv = document.createElement('div');
+                    clockDiv.id = 'system-clock';
+                    clockDiv.className = 'text-sm text-gray-600';
+                    clockDiv.innerHTML = `<i class="fas fa-clock mr-2"></i><span id="time">${timeString}</span> | <span id="date">${dateString}</span>`;
+                    headers[0].appendChild(clockDiv);
+                }
+            } else {
+                const timeEl = document.getElementById('time');
+                const dateEl = document.getElementById('date');
+                if (timeEl) timeEl.textContent = timeString;
+                if (dateEl) dateEl.textContent = dateString;
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                openModal('newProperty');
+            }
+            if (e.key >= '1' && e.key <= '8') {
+                const modules = ['dashboard', 'properties', 'sales', 'tenants', 'rentals', 'maintenance', 'financial', 'reports'];
+                showModule(modules[parseInt(e.key) - 1]);
+            }
+        });
+
+        // Search functionality
+        document.querySelectorAll('input[type="text"][placeholder*="Search"]').forEach(input => {
+            input.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                console.log('Searching for:', searchTerm);
+                // Implement search logic here
+            });
+        });
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            renderActivityFeed();
+            console.log('Data refreshed');
+        }, 30000);
+
+        console.log('PropManager Real Estate ERP System Loaded Successfully!');
+        console.log('Keyboard Shortcuts:');
+        console.log('- Ctrl/Cmd + N: New Property');
+        console.log('- 1-8: Quick Module Navigation');
+        console.log('- Escape: Close Modal');
+        console.log('');
+        console.log('Features Available:');
+        console.log('✓ Property Portfolio Management');
+        console.log('✓ Sales & Leasing Pipeline');
+        console.log('✓ Tenant Management');
+        console.log('✓ Rental Management & Invoicing');
+        console.log('✓ Maintenance Management');
+        console.log('✓ Financial Management');
+        console.log('✓ Reports & Analytics');
+    </script>
+</body>
+</html>
+                                <!-- <h3 class="text-lg font-semibold text-gray-800">Sales Pipeline</h3>
+                            </div>
+                            <div class="p-5" id="sales-pipeline"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Recent Offers</h3>
+                            </div>
+                            <div class="p-5" id="recent-offers"></div>
+                        </div>
+                    </div>
+                </div>
+
+              Tenants Module -->
+                <!-- <div id="tenants-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Tenant Management</h2>
+                        <button onclick="openModal('newTenant')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            Add Tenant
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-blue-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-users text-blue-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">198</div>
+                            <div class="text-sm text-gray-600">Active Tenants</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-green-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-check-circle text-green-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">176</div>
+                            <div class="text-sm text-gray-600">Good Standing</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-orange-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-exclamation-triangle text-orange-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">22</div>
+                            <div class="text-sm text-gray-600">Late Payments</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-purple-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-calendar text-purple-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">23</div>
+                            <div class="text-sm text-gray-600">Expiring Leases</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Tenant Directory</h3>
+                        </div>
+                        <div class="p-5 overflow-x-auto" id="tenants-table"></div>
+                    </div>
+                </div> -->
+
+                <!-- Rental Management Module -->
+                <!-- <div id="rentals-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Rental Management</h2>
+                        <button onclick="openModal('newRental')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            New Rental Agreement
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Monthly Revenue</div>
+                                <i class="fas fa-dollar-sign text-green-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">$425,800</div>
+                            <div class="text-sm text-green-600 mt-1">+7.2% from last month</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Collection Rate</div>
+                                <i class="fas fa-percentage text-blue-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">94%</div>
+                            <div class="text-sm text-gray-600 mt-1">Above target</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Pending Invoices</div>
+                                <i class="fas fa-file-invoice text-orange-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">34</div>
+                            <div class="text-sm text-orange-600 mt-1">$58,400 outstanding</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Security Deposits</div>
+                                <i class="fas fa-shield-alt text-purple-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">$342K</div>
+                            <div class="text-sm text-gray-600 mt-1">Total held</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-5 border-b border-gray-200"> --> 

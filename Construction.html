@@ -1,0 +1,1269 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuildPro - Construction ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); }
+        .gradient-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .sidebar-item { transition: all 0.2s; }
+        .sidebar-item:hover { transform: translateX(4px); }
+        .project-card { transition: all 0.3s; }
+        .project-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 gradient-indigo rounded-lg flex items-center justify-center">
+                        <i class="fas fa-building text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900">BuildPro</h1>
+                        <p class="text-xs text-gray-600">Construction ERP</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <button onclick="showModule('dashboard')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="dashboard">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </button>
+                <button onclick="showModule('tasks')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="tasks">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span class="font-medium">Tasks</span>
+                </button>
+                <button onclick="showModule('financial')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="financial">
+                    <i class="fas fa-dollar-sign w-5"></i>
+                    <span class="font-medium">Financial</span>
+                </button>
+                <button onclick="showModule('procurement')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="procurement">
+                    <i class="fas fa-box w-5"></i>
+                    <span class="font-medium">Procurement</span>
+                </button>
+                <button onclick="showModule('resources')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="resources">
+                    <i class="fas fa-tools w-5"></i>
+                    <span class="font-medium">Resources</span>
+                </button>
+                <button onclick="showModule('documents')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="documents">
+                    <i class="fas fa-file-alt w-5"></i>
+                    <span class="font-medium">Documents</span>
+                </button>
+                <button onclick="showModule('siteops')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 module-btn" data-module="siteops">
+                    <i class="fas fa-hard-hat w-5"></i>
+                    <span class="font-medium">Site Operations</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center gap-3 px-4 py-3">
+                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-semibold text-gray-700">JD</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">John Doe</div>
+                        <div class="text-xs text-gray-500">Project Manager</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-8">
+                <!-- Dashboard Module -->
+                <div id="dashboard-module" class="module-content">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Command Center</h2>
+                        <button onclick="openModal('newProject')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            New Project
+                        </button>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="gradient-blue rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-building text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">Active</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">12</div>
+                            <div class="text-sm opacity-90">Active Projects</div>
+                        </div>
+
+                        <div class="gradient-green rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">+12%</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">$17.5M</div>
+                            <div class="text-sm opacity-90">Total Portfolio Value</div>
+                        </div>
+
+                        <div class="gradient-orange rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-bullseye text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">On Track</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">68%</div>
+                            <div class="text-sm opacity-90">Avg Completion Rate</div>
+                        </div>
+
+                        <div class="gradient-purple rounded-xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <i class="fas fa-users text-3xl opacity-80"></i>
+                                <span class="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">Available</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">156</div>
+                            <div class="text-sm opacity-90">Total Workforce</div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Grid -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                        <div class="p-5 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Project Portfolio</h3>
+                                <div class="flex items-center gap-3">
+                                    <div class="relative">
+                                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                                        <input type="text" placeholder="Search projects..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <button class="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
+                                        <i class="fas fa-filter"></i>
+                                        Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5" id="projects-container"></div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Financial Overview</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Total Contract Value</span>
+                                    <span class="font-bold text-gray-900">$17,500,000</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Total Spent</span>
+                                    <span class="font-bold text-gray-900">$12,827,000</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                    <span class="text-gray-700">Available Budget</span>
+                                    <span class="font-bold text-green-600">$4,673,000</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                    <span class="text-gray-700">Projected Margin</span>
+                                    <span class="font-bold text-blue-600">14.2%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+                            <div class="space-y-3" id="activity-feed"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Module -->
+                <div id="tasks-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Task Management</h2>
+                        <button onclick="openModal('newTask')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            New Task
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Total Tasks</div>
+                            <div class="text-3xl font-bold text-blue-600">145</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">In Progress</div>
+                            <div class="text-3xl font-bold text-yellow-600">56</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Completed</div>
+                            <div class="text-3xl font-bold text-green-600">78</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="text-sm text-gray-600 mb-2">Overdue</div>
+                            <div class="text-3xl font-bold text-red-600">11</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Active Tasks</h3>
+                        </div>
+                        <div class="p-5 overflow-x-auto" id="tasks-table"></div>
+                    </div>
+                </div>
+
+                <!-- Financial Module -->
+                <div id="financial-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Financial Management</h2>
+                        <button onclick="openModal('newBudget')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            New Budget Entry
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Revenue Generated</div>
+                                <i class="fas fa-trending-up text-green-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">$12.8M</div>
+                            <div class="text-sm text-green-600">+18% from last quarter</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Total Costs</div>
+                                <i class="fas fa-dollar-sign text-orange-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">$11.0M</div>
+                            <div class="text-sm text-gray-600">73% of budget utilized</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm text-gray-600">Net Margin</div>
+                                <i class="fas fa-chart-bar text-blue-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">14.2%</div>
+                            <div class="text-sm text-blue-600">Above target by 2%</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Project Cost Breakdown</h3>
+                        </div>
+                        <div class="p-5 overflow-x-auto" id="financial-table"></div>
+                    </div>
+                </div>
+
+                <!-- Procurement Module -->
+                <div id="procurement-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Procurement & Subcontractors</h2>
+                        <div class="flex gap-2">
+                            <button onclick="openModal('newPO')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                <i class="fas fa-plus"></i>
+                                New PO
+                            </button>
+                            <button onclick="openModal('newSubcontractor')" class="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-plus"></i>
+                                Add Subcontractor
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Subcontractor Directory</h3>
+                        </div>
+                        <div class="p-5" id="subcontractors-container"></div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Purchase Orders</h3>
+                        </div>
+                        <div class="p-5 overflow-x-auto" id="purchase-orders-table"></div>
+                    </div>
+                </div>
+
+                <!-- Resources Module -->
+                <div id="resources-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Resource Management</h2>
+                        <button onclick="openModal('newResource')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            Add Resource
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <i class="fas fa-tools text-blue-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Equipment</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">24</div>
+                            <div class="text-sm text-gray-600 mt-1">Active units</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <i class="fas fa-hard-hat text-green-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Workforce</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">156</div>
+                            <div class="text-sm text-gray-600 mt-1">Total workers</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-orange-100 rounded-lg">
+                                    <i class="fas fa-clock text-orange-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Work Hours</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">12,480</div>
+                            <div class="text-sm text-gray-600 mt-1">This month</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <i class="fas fa-bullseye text-purple-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Utilization</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">87%</div>
+                            <div class="text-sm text-gray-600 mt-1">Average rate</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Equipment & Labor</h3>
+                        </div>
+                        <div class="p-5" id="resources-container"></div>
+                    </div>
+                </div>
+
+                <!-- Documents Module -->
+                <div id="documents-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Document Management</h2>
+                        <button onclick="openModal('uploadDoc')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-upload"></i>
+                            Upload Document
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-blue-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-file-alt text-blue-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">45</div>
+                            <div class="text-sm text-gray-600">Blueprints</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-green-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-file-contract text-green-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">28</div>
+                            <div class="text-sm text-gray-600">Contracts</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-orange-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-clipboard-check text-orange-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">67</div>
+                            <div class="text-sm text-gray-600">Inspections</div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="p-2 bg-red-100 rounded-lg inline-block mb-3">
+                                <i class="fas fa-shield-alt text-red-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">34</div>
+                            <div class="text-sm text-gray-600">Safety Docs</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Document Library</h3>
+                        </div>
+                        <div class="p-5 overflow-x-auto" id="documents-table"></div>
+                    </div>
+                </div>
+
+                <!-- Site Operations Module -->
+                <div id="siteops-module" class="module-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Site Operations</h2>
+                        <button onclick="openModal('newReport')" class="flex items-center gap-2 gradient-indigo text-white px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus"></i>
+                            New Site Report
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <i class="fas fa-shield-alt text-green-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Safety Score</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">94%</div>
+                            <div class="text-sm text-green-600 mt-1">Excellent rating</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <i class="fas fa-clipboard-check text-blue-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Inspections</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">23</div>
+                            <div class="text-sm text-gray-600 mt-1">This month</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-orange-100 rounded-lg">
+                                    <i class="fas fa-exclamation-triangle text-orange-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Open Issues</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">7</div>
+                            <div class="text-sm text-gray-600 mt-1">Requires attention</div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <i class="fas fa-camera text-purple-600"></i>
+                                </div>
+                                <div class="text-sm text-gray-600">Progress Photos</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900">342</div>
+                            <div class="text-sm text-gray-600 mt-1">Uploaded</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Recent Site Reports</h3>
+                        </div>
+                        <div class="p-5" id="site-reports-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
+                <h3 class="text-xl font-bold text-gray-900" id="modal-title">Modal Title</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6" id="modal-body"></div>
+
+            <div class="p-6 border-t border-gray-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
+                <button onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitForm()" class="px-4 py-2 gradient-indigo text-white rounded-lg hover:opacity-90 transition-colors">
+                    Create
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const projects = [
+            {
+                id: 'PRJ001',
+                name: 'Skyline Tower Complex',
+                client: 'Metro Developments Ltd',
+                type: 'Commercial',
+                progress: 67,
+                budget: 5800000,
+                spent: 3886000,
+                location: 'Central Business District',
+                manager: 'Robert Chen',
+                phase: 'Structural Works',
+                risk: 'low'
+            },
+            {
+                id: 'PRJ002',
+                name: 'Green Valley Residential Estate',
+                client: 'Sunrise Properties',
+                type: 'Residential',
+                progress: 43,
+                budget: 3200000,
+                spent: 1376000,
+                location: 'Suburban Zone A',
+                manager: 'Maria Santos',
+                phase: 'Foundation',
+                risk: 'medium'
+            },
+            {
+                id: 'PRJ003',
+                name: 'Industrial Park Infrastructure',
+                client: 'Government Authority',
+                type: 'Infrastructure',
+                progress: 89,
+                budget: 8500000,
+                spent: 7565000,
+                location: 'Industrial Zone 3',
+                manager: 'James Wilson',
+                phase: 'Finishing',
+                risk: 'low'
+            }
+        ];
+
+        const tasks = [
+            { id: 'TSK001', project: 'PRJ001', name: 'Pour basement concrete', assignee: 'Construction Team A', priority: 'high', status: 'in-progress', dueDate: '2024-10-28', completion: 75 },
+            { id: 'TSK002', project: 'PRJ001', name: 'Install steel framework L3-L5', assignee: 'Steel Workers B', priority: 'high', status: 'pending', dueDate: '2024-11-05', completion: 0 },
+            { id: 'TSK003', project: 'PRJ002', name: 'Site excavation', assignee: 'Earthworks Crew', priority: 'medium', status: 'completed', dueDate: '2024-10-20', completion: 100 },
+            { id: 'TSK004', project: 'PRJ002', name: 'Foundation waterproofing', assignee: 'Waterproofing Specialists', priority: 'high', status: 'in-progress', dueDate: '2024-10-30', completion: 60 },
+            { id: 'TSK005', project: 'PRJ003', name: 'Final quality inspection', assignee: 'QA Team', priority: 'critical', status: 'pending', dueDate: '2024-10-27', completion: 0 }
+        ];
+
+        const subcontractors = [
+            { id: 'SUB001', name: 'Apex Steel Works', specialty: 'Structural Steel', rating: 4.8, activeContracts: 2, totalValue: 450000, status: 'approved' },
+            { id: 'SUB002', name: 'ElectroTech Solutions', specialty: 'Electrical Systems', rating: 4.5, activeContracts: 3, totalValue: 320000, status: 'approved' },
+            { id: 'SUB003', name: 'Premium Plumbing Co', specialty: 'Plumbing & HVAC', rating: 4.7, activeContracts: 2, totalValue: 280000, status: 'approved' },
+            { id: 'SUB004', name: 'BuildRight Contractors', specialty: 'General Construction', rating: 3.9, activeContracts: 0, totalValue: 0, status: 'pending' }
+        ];
+
+        const purchaseOrders = [
+            { id: 'PO001', project: 'PRJ001', supplier: 'CementCo Industries', item: 'Portland Cement', quantity: '500 bags', value: 25000, status: 'delivered' },
+            { id: 'PO002', project: 'PRJ001', supplier: 'Steel Suppliers Ltd', item: 'Reinforcement Bars', quantity: '20 tons', value: 80000, status: 'in-transit' },
+            { id: 'PO003', project: 'PRJ002', supplier: 'Hardware Mega Store', item: 'Construction Tools', quantity: 'Various', value: 15000, status: 'pending' }
+        ];
+
+        const resources = [
+            { id: 'EQ001', name: 'Tower Crane TC-5000', type: 'equipment', project: 'PRJ001', status: 'in-use', condition: 'good' },
+            { id: 'EQ002', name: 'Excavator CAT 320', type: 'equipment', project: 'PRJ002', status: 'in-use', condition: 'excellent' },
+            { id: 'EQ003', name: 'Concrete Mixer', type: 'equipment', project: 'PRJ001', status: 'maintenance', condition: 'fair' },
+            { id: 'LB001', name: 'Site Supervisor Team', type: 'labor', project: 'PRJ001', count: 3, hours: 480, status: 'active' },
+            { id: 'LB002', name: 'Construction Workers', type: 'labor', project: 'PRJ001', count: 25, hours: 5000, status: 'active' }
+        ];
+
+        const documents = [
+            { id: 'DOC001', project: 'PRJ001', name: 'Architectural Plans Rev 3', type: 'blueprint', size: '15.2 MB', uploadDate: '2024-10-10', status: 'approved' },
+            { id: 'DOC002', project: 'PRJ001', name: 'Structural Drawings', type: 'blueprint', size: '22.8 MB', uploadDate: '2024-10-12', status: 'approved' },
+            { id: 'DOC003', project: 'PRJ002', name: 'Safety Protocol Manual', type: 'safety', size: '3.4 MB', uploadDate: '2024-10-05', status: 'approved' },
+            { id: 'DOC004', project: 'PRJ001', name: 'Site Inspection Report', type: 'inspection', size: '1.2 MB', uploadDate: '2024-10-24', status: 'pending' }
+        ];
+
+        const siteReports = [
+            { id: 'RPT001', project: 'PRJ001', type: 'Progress Report', reporter: 'Robert Chen', date: '2024-10-25', issues: 2 },
+            { id: 'RPT002', project: 'PRJ002', type: 'Safety Inspection', reporter: 'Safety Officer', date: '2024-10-24', issues: 0 },
+            { id: 'RPT003', project: 'PRJ003', type: 'Quality Check', reporter: 'QA Team', date: '2024-10-23', issues: 1 }
+        ];
+
+        const activities = [
+            { type: 'success', message: 'Foundation work completed - PRJ002', time: '2 hours ago' },
+            { type: 'warning', message: 'Material delivery delayed - PRJ001', time: '4 hours ago' },
+            { type: 'info', message: 'New purchase order approved - PO003', time: '5 hours ago' },
+            { type: 'success', message: 'Safety inspection passed - PRJ003', time: '1 day ago' }
+        ];
+
+        // Functions
+        function showModule(moduleName) {
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(moduleName + '-module').classList.remove('hidden');
+            
+            document.querySelectorAll('.module-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-50', 'text-indigo-600');
+                btn.classList.add('text-gray-700');
+            });
+            
+            const activeBtn = document.querySelector(`[data-module="${moduleName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-50', 'text-indigo-600');
+                activeBtn.classList.remove('text-gray-700');
+            }
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('projects-container');
+            container.innerHTML = projects.map(project => {
+                const riskColor = project.risk === 'low' ? 'bg-green-100 text-green-700' : 
+                                 project.risk === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+                
+                return `
+                    <div class="project-card border border-gray-200 rounded-lg p-5 mb-4 cursor-pointer hover:border-indigo-500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h4 class="text-lg font-semibold text-gray-900">${project.name}</h4>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${riskColor}">
+                                        ${project.risk.toUpperCase()} RISK
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-4 text-sm text-gray-600">
+                                    <span><i class="fas fa-briefcase mr-1"></i>${project.id}</span>
+                                    <span>${project.client}</span>
+                                    <span>•</span>
+                                    <span>${project.location}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-600 mb-1">Current Phase</div>
+                                <div class="text-sm font-semibold text-indigo-600">${project.phase}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <div class="text-xs text-gray-600 mb-1">Budget</div>
+                                <div class="text-lg font-bold text-gray-900">${(project.budget / 1000000).toFixed(1)}M</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-600 mb-1">Spent</div>
+                                <div class="text-lg font-bold text-gray-900">${(project.spent / 1000000).toFixed(1)}M</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-600 mb-1">Remaining</div>
+                                <div class="text-lg font-bold text-green-600">${((project.budget - project.spent) / 1000000).toFixed(1)}M</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-600 mb-1">Manager</div>
+                                <div class="text-sm font-medium text-gray-900">${project.manager}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between text-sm mb-2">
+                                <span class="text-gray-600">Overall Progress</span>
+                                <span class="font-semibold text-gray-900">${project.progress}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="gradient-indigo h-3 rounded-full" style="width: ${project.progress}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderActivityFeed() {
+            const container = document.getElementById('activity-feed');
+            container.innerHTML = activities.map(activity => {
+                const dotColor = activity.type === 'success' ? 'bg-green-500' : 
+                                activity.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+                
+                return `
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="${dotColor} w-2 h-2 rounded-full mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-gray-900">${activity.message}</div>
+                            <div class="text-xs text-gray-500 mt-1">${activity.time}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-table');
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Task</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Project</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Assignee</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Priority</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Progress</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tasks.map(task => {
+                            const priorityColor = task.priority === 'critical' ? 'bg-red-100 text-red-700' :
+                                                 task.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                                                 task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700';
+                            const statusColor = task.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                               task.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700';
+                            
+                            return `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-4 px-2">
+                                        <div class="font-medium text-gray-900">${task.name}</div>
+                                        <div class="text-sm text-gray-500">${task.id}</div>
+                                    </td>
+                                    <td class="py-4 px-2 text-gray-700">${task.project}</td>
+                                    <td class="py-4 px-2 text-gray-700">${task.assignee}</td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${priorityColor}">${task.priority}</span>
+                                    </td>
+                                    <td class="py-4 px-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-indigo-500 h-2 rounded-full" style="width: ${task.completion}%"></div>
+                                            </div>
+                                            <span class="text-sm text-gray-600">${task.completion}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${task.status}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderFinancialTable() {
+            const container = document.getElementById('financial-table');
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Project</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Budget</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Spent</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Remaining</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Margin</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${projects.map(project => {
+                            const remaining = project.budget - project.spent;
+                            const margin = ((remaining / project.budget) * 100).toFixed(1);
+                            const statusColor = project.progress > 80 ? 'bg-green-100 text-green-700' :
+                                               project.progress > 50 ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700';
+                            
+                            return `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-4 px-2">
+                                        <div class="font-medium text-gray-900">${project.name}</div>
+                                        <div class="text-sm text-gray-500">${project.id}</div>
+                                    </td>
+                                    <td class="py-4 px-2 text-gray-900">${(project.budget / 1000000).toFixed(2)}M</td>
+                                    <td class="py-4 px-2 text-gray-900">${(project.spent / 1000000).toFixed(2)}M</td>
+                                    <td class="py-4 px-2 text-green-600 font-medium">${(remaining / 1000000).toFixed(2)}M</td>
+                                    <td class="py-4 px-2 font-medium text-blue-600">${margin}%</td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${project.progress}% Complete</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderSubcontractors() {
+            const container = document.getElementById('subcontractors-container');
+            container.innerHTML = subcontractors.map(sub => {
+                const statusColor = sub.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+                const stars = '★'.repeat(Math.floor(sub.rating)) + '☆'.repeat(5 - Math.floor(sub.rating));
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3 hover:border-indigo-500 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h4 class="font-semibold text-gray-900">${sub.name}</h4>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColor}">${sub.status.toUpperCase()}</span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-3">${sub.specialty}</div>
+                                <div class="flex items-center gap-6 text-sm">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-400">${stars}</span>
+                                        <span class="text-gray-700 ml-1">${sub.rating}</span>
+                                    </div>
+                                    <span class="text-gray-600">${sub.activeContracts} active contracts</span>
+                                    <span class="font-semibold text-gray-900">${(sub.totalValue / 1000).toFixed(0)}K total value</span>
+                                </div>
+                            </div>
+                            <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">View Details</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPurchaseOrders() {
+            const container = document.getElementById('purchase-orders-table');
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">PO Number</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Project</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Supplier</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Item</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Value</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${purchaseOrders.map(po => {
+                            const statusColor = po.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                               po.status === 'in-transit' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700';
+                            
+                            return `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-4 px-2 font-medium text-gray-900">${po.id}</td>
+                                    <td class="py-4 px-2 text-gray-700">${po.project}</td>
+                                    <td class="py-4 px-2 text-gray-700">${po.supplier}</td>
+                                    <td class="py-4 px-2">
+                                        <div class="text-gray-900">${po.item}</div>
+                                        <div class="text-sm text-gray-500">${po.quantity}</div>
+                                    </td>
+                                    <td class="py-4 px-2 font-semibold text-gray-900">${po.value.toLocaleString()}</td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${po.status}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderResources() {
+            const container = document.getElementById('resources-container');
+            container.innerHTML = resources.map(resource => {
+                const statusColor = resource.status === 'in-use' ? 'bg-blue-100 text-blue-700' :
+                                   resource.status === 'maintenance' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
+                const icon = resource.type === 'equipment' ? 'fa-tools' : 'fa-users';
+                const iconBg = resource.type === 'equipment' ? 'bg-gray-100' : 'bg-indigo-100';
+                const iconColor = resource.type === 'equipment' ? 'text-gray-600' : 'text-indigo-600';
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4 flex-1">
+                                <div class="p-3 ${iconBg} rounded-lg">
+                                    <i class="fas ${icon} text-xl ${iconColor}"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-gray-900 mb-1">${resource.name}</div>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span>Project: ${resource.project}</span>
+                                        ${resource.type === 'equipment' ? `<span>Condition: ${resource.condition}</span>` : `<span>Team: ${resource.count} members</span>`}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${resource.status}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDocuments() {
+            const container = document.getElementById('documents-table');
+            container.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Document Name</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Type</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Project</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Size</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Date</th>
+                            <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${documents.map(doc => {
+                            const statusColor = doc.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+                            
+                            return `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-4 px-2">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-file-alt text-gray-500"></i>
+                                            <span class="text-gray-900">${doc.name}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">${doc.type}</span>
+                                    </td>
+                                    <td class="py-4 px-2 text-gray-700">${doc.project}</td>
+                                    <td class="py-4 px-2 text-gray-700">${doc.size}</td>
+                                    <td class="py-4 px-2 text-gray-700">${doc.uploadDate}</td>
+                                    <td class="py-4 px-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${doc.status}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderSiteReports() {
+            const container = document.getElementById('site-reports-container');
+            container.innerHTML = siteReports.map(report => {
+                const issueColor = report.issues === 0 ? 'bg-green-100 text-green-700' :
+                                  report.issues <= 2 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-3 hover:border-indigo-500 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h4 class="font-semibold text-gray-900">${report.type}</h4>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${issueColor}">${report.issues} Issues</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-sm text-gray-600">
+                                    <span>Project: ${report.project}</span>
+                                    <span>•</span>
+                                    <span>Reporter: ${report.reporter}</span>
+                                    <span>•</span>
+                                    <span>Date: ${report.date}</span>
+                                </div>
+                            </div>
+                            <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">View Report</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openModal(type) {
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            const modalContent = {
+                newProject: {
+                    title: 'Create New Project',
+                    fields: [
+                        { label: 'Project Name', type: 'text', placeholder: 'Enter project name' },
+                        { label: 'Client', type: 'text', placeholder: 'Enter client name' },
+                        { label: 'Type', type: 'select', options: ['Commercial', 'Residential', 'Infrastructure'] },
+                        { label: 'Budget', type: 'number', placeholder: 'Enter budget' },
+                        { label: 'Start Date', type: 'date' },
+                        { label: 'End Date', type: 'date' },
+                        { label: 'Location', type: 'text', placeholder: 'Enter location' },
+                        { label: 'Project Manager', type: 'text', placeholder: 'Assign manager' }
+                    ]
+                },
+                newTask: {
+                    title: 'Create New Task',
+                    fields: [
+                        { label: 'Task Name', type: 'text', placeholder: 'Enter task name' },
+                        { label: 'Project', type: 'select', options: ['PRJ001', 'PRJ002', 'PRJ003'] },
+                        { label: 'Assignee', type: 'text', placeholder: 'Assign to' },
+                        { label: 'Priority', type: 'select', options: ['Low', 'Medium', 'High', 'Critical'] },
+                        { label: 'Due Date', type: 'date' },
+                        { label: 'Description', type: 'textarea', placeholder: 'Task description' }
+                    ]
+                },
+                newPO: {
+                    title: 'Create Purchase Order',
+                    fields: [
+                        { label: 'Project', type: 'select', options: ['PRJ001', 'PRJ002', 'PRJ003'] },
+                        { label: 'Supplier', type: 'text', placeholder: 'Enter supplier name' },
+                        { label: 'Item Description', type: 'text', placeholder: 'What are you ordering?' },
+                        { label: 'Quantity', type: 'text', placeholder: 'Enter quantity' },
+                        { label: 'Unit Price', type: 'number', placeholder: 'Enter unit price' },
+                        { label: 'Total Value', type: 'number', placeholder: 'Total value' }
+                    ]
+                },
+                newSubcontractor: {
+                    title: 'Add Subcontractor',
+                    fields: [
+                        { label: 'Company Name', type: 'text', placeholder: 'Enter company name' },
+                        { label: 'Specialty', type: 'text', placeholder: 'Area of expertise' },
+                        { label: 'Contact Person', type: 'text', placeholder: 'Contact name' },
+                        { label: 'Phone', type: 'tel', placeholder: 'Phone number' },
+                        { label: 'Email', type: 'email', placeholder: 'Email address' }
+                    ]
+                },
+                newResource: {
+                    title: 'Add Resource',
+                    fields: [
+                        { label: 'Resource Name', type: 'text', placeholder: 'Enter resource name' },
+                        { label: 'Type', type: 'select', options: ['Equipment', 'Labor'] },
+                        { label: 'Project', type: 'select', options: ['PRJ001', 'PRJ002', 'PRJ003'] },
+                        { label: 'Quantity/Count', type: 'number', placeholder: 'Enter quantity' }
+                    ]
+                },
+                uploadDoc: {
+                    title: 'Upload Document',
+                    fields: [
+                        { label: 'Document Type', type: 'select', options: ['Blueprint', 'Contract', 'Inspection', 'Safety', 'Other'] },
+                        { label: 'Project', type: 'select', options: ['PRJ001', 'PRJ002', 'PRJ003'] },
+                        { label: 'Document Name', type: 'text', placeholder: 'Enter document name' },
+                        { label: 'File', type: 'file' }
+                    ]
+                },
+                newReport: {
+                    title: 'New Site Report',
+                    fields: [
+                        { label: 'Report Type', type: 'select', options: ['Progress Report', 'Safety Inspection', 'Quality Check'] },
+                        { label: 'Project', type: 'select', options: ['PRJ001', 'PRJ002', 'PRJ003'] },
+                        { label: 'Reporter', type: 'text', placeholder: 'Your name' },
+                        { label: 'Date', type: 'date' },
+                        { label: 'Summary', type: 'textarea', placeholder: 'Report summary' }
+                    ]
+                },
+                newBudget: {
+                    title: 'New Budget Entry',
+                    fields: [
+                        { label: 'Project', type: 'select', options: ['PRJ001', 'PRJ002', 'PRJ003'] },
+                        { label: 'Category', type: 'select', options: ['Labor', 'Materials', 'Equipment', 'Subcontractors', 'Other'] },
+                        { label: 'Description', type: 'text', placeholder: 'Enter description' },
+                        { label: 'Amount', type: 'number', placeholder: 'Enter amount' },
+                        { label: 'Date', type: 'date' }
+                    ]
+                }
+            };
+            
+            const currentModal = modalContent[type] || modalContent.newProject;
+            title.textContent = currentModal.title;
+            
+            body.innerHTML = currentModal.fields.map(field => {
+                if (field.type === 'select') {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select ${field.label}</option>
+                                ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (field.type === 'textarea') {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <textarea rows="4" placeholder="${field.placeholder}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                    `;
+                } else if (field.type === 'file') {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <i class="fas fa-upload text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                <p class="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, JPG, PNG up to 50MB</p>
+                                <input type="file" class="hidden">
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.label}</label>
+                            <input type="${field.type}" placeholder="${field.placeholder || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    `;
+                }
+            }).join('');
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function submitForm() {
+            const modalTitle = document.getElementById('modal-title').textContent;
+            showNotification(`${modalTitle} created successfully!`, 'success');
+            closeModal();
+        }
+
+        // Add notification system
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showModule('dashboard');
+            renderProjects();
+            renderActivityFeed();
+            renderTasks();
+            renderFinancialTable();
+            renderSubcontractors();
+            renderPurchaseOrders();
+            renderResources();
+            renderDocuments();
+            renderSiteReports();
+            
+            const dashboardBtn = document.querySelector('[data-module="dashboard"]');
+            if (dashboardBtn) {
+                dashboardBtn.classList.add('bg-indigo-50', 'text-indigo-600');
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('modal').classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Search functionality
+        document.querySelectorAll('input[type="text"][placeholder*="Search"]').forEach(input => {
+            input.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                console.log('Searching for:', searchTerm);
+            });
+        });
+
+        // Animated progress bars
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('[style*="width"]');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                    bar.style.transition = 'width 1s ease-in-out';
+                }, 100);
+            });
+        }
+
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            const dateString = now.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            
+            if (!document.getElementById('system-clock')) {
+                const header = document.querySelector('.flex.items-center.justify-between');
+                if (header) {
+                    const clockDiv = document.createElement('div');
+                    clockDiv.id = 'system-clock';
+                    clockDiv.className = 'text-sm text-gray-600';
+                    clockDiv.innerHTML = `<i class="fas fa-clock mr-2"></i><span id="time">${timeString}</span> | <span id="date">${dateString}</span>`;
+                    header.appendChild(clockDiv);
+                }
+            } else {
+                document.getElementById('time').textContent = timeString;
+                document.getElementById('date').textContent = dateString;
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Refresh data functionality
+        function refreshData() {
+            showNotification('Refreshing data...', 'info');
+            setTimeout(() => {
+                renderProjects();
+                renderActivityFeed();
+                renderTasks();
+                renderFinancialTable();
+                renderSubcontractors();
+                renderPurchaseOrders();
+                renderResources();
+                renderDocuments();
+                renderSiteReports();
+                animateProgressBars();
+                showNotification('Data refreshed successfully!', 'success');
+            }, 500);
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                openModal('newProject');
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                refreshData();
+            }
+            if (e.key >= '1' && e.key <= '7') {
+                const modules = ['dashboard', 'tasks', 'financial', 'procurement', 'resources', 'documents', 'siteops'];
+                showModule(modules[parseInt(e.key) - 1]);
+            }
+        });
+
+        // Initialize with animation
+        setTimeout(() => {
+            animateProgressBars();
+        }, 300);
+
+        console.log('BuildPro Construction ERP System Loaded Successfully!');
+        console.log('Keyboard Shortcuts:');
+        console.log('- Ctrl/Cmd + N: New Project');
+        console.log('- Ctrl/Cmd + R: Refresh Data');
+        console.log('- 1-7: Quick Module Navigation');
+        console.log('- Escape: Close Modal');
+    </script>
+    </body>
+    </html>
